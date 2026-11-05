@@ -3,11 +3,19 @@ const postsElement = document.querySelector("#posts");
 const statusElement = document.querySelector("#form-status");
 const submitButton = form.querySelector("button[type='submit']");
 
-async function loadPosts() {
-  const response = await fetch("/api/posts");
-  if (!response.ok) throw new Error("Could not load messages.");
+async function api(path, options) {
+  const response = await fetch(path, options);
+  const result = await response.json();
 
-  const posts = await response.json();
+  if (!response.ok) {
+    throw new Error(result.error || "Request failed.");
+  }
+
+  return result;
+}
+
+async function loadPosts() {
+  const posts = await api("/api/posts");
   postsElement.replaceChildren();
 
   if (posts.length === 0) {
@@ -58,14 +66,11 @@ form.addEventListener("submit", async (event) => {
   };
 
   try {
-    const response = await fetch("/api/posts", {
+    await api("/api/posts", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
-    const result = await response.json();
-
-    if (!response.ok) throw new Error(result.error || "Could not post message.");
 
     form.reset();
     statusElement.textContent = "Posted.";
