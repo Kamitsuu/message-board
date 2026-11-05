@@ -44,3 +44,17 @@ test("POST /api/posts validates required fields", async (t) => {
   assert.equal(response.status, 400);
   assert.match((await response.json()).error, /required/i);
 });
+
+test("POST /api/posts validates field lengths", async (t) => {
+  const { server, baseUrl } = await startTestServer();
+  t.after(() => server.close());
+
+  const response = await fetch(`${baseUrl}/api/posts`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name: "N".repeat(51), message: "M".repeat(1001) }),
+  });
+
+  assert.equal(response.status, 400);
+  assert.match((await response.json()).error, /50 characters/i);
+});
